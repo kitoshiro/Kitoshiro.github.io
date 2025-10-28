@@ -1,0 +1,56 @@
+/* ================================================= */
+/* GLOBAL RESET Y ESTILOS BASE */
+/* ================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Definir tamaños base para facilitar el escalado responsivo */
+    font-size: 16px; /* Tamaño base para rem */
+    --padding-section-desktop: 40px 5%;
+    --max-width-content: 1200px;
+    --color-primary: #4CAF50; /* Verde de Marca */
+    --color-secondary: #388E3C; /* Verde Oscuro (Hover) */
+    --color-dark: #212121; /* Negro Oscuro */
+    --color-light-gray: #f4f4f4; /* Gris Claro de Fondo */
+    --color-medium-gray: #ddd; /* Gris Medio para Bordes */
+    --color-white: #ffffff;
+    --color-text-dark: #333;
+    --color-text-light: #ccc;
+    --color-dark-rgb: 33, 33, 33; /* RGB para transparencias */
+}
+
+
+body {
+    font-family: 'Arial', sans-serif;
+    color: var(--color-text-dark);
+    background-color: var(--color-white);
+    padding-top: 90px; /* Ajustado el espacio para el menú fijo */
+    line-height: 1.6;
+    overflow-x: hidden; /* Previene el desbordamiento horizontal en móviles */
+}
+
+h1, h2, h3 {
+    color: var(--color-dark);
+    margin-bottom: 1rem; /* Usar rem para un escalado más consistente */
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+
+main {
+    padding: 1.25rem 0; /* Convertir a rem */
+}
+
+section {
+    padding: var(--padding-section-desktop);
+    max-width: var(--max-width-content);
+    margin: 0 auto;
+}
