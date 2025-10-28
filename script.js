@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 3. Carga el resto de los componentes de contenido.
         Promise.all([
-            loadComponent('marquesina.html', 'marquesina-placeholder'),
-            loadComponent('productos.html', 'productos-placeholder'),
-            loadComponent('contacto.html', 'contacto-placeholder'),
+            loadComponent('marquee.html', 'marquesina-placeholder'),
+            loadComponent('product.html', 'productos-placeholder'),
+            loadComponent('contact.html', 'contacto-placeholder'),
         ]).then(() => {
             // Aquí se llamaría a la función para cargar el JSON y renderizar los productos
             // ej: renderProductsFromJSON();
