@@ -45,19 +45,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 1. Carga componentes ESENCIALES y ESTRUCTURALES (Header/Footer)
         await Promise.all([
-            loadComponent('components/header.html', 'header-placeholder'),
-            loadComponent('components/footer.html', 'footer-placeholder'),
+            loadComponent('header.html', 'header-placeholder'),
+            loadComponent('footer.html', 'footer-placeholder'),
         ]);
 
         // 2. Carga el Carrusel y su lógica. Esperamos a que el HTML esté inyectado.
-        await loadComponent('components/carrusel.html', 'carrusel-placeholder');
+        await loadComponent('carrusel.html', 'carrusel-placeholder');
         setupCarrusel(); // Se ejecuta con la certeza de que el DOM del carrusel existe.
         
         // 3. Carga el resto de los componentes de contenido.
         Promise.all([
-            loadComponent('components/marquesina.html', 'marquesina-placeholder'),
-            loadComponent('components/productos.html', 'productos-placeholder'),
-            loadComponent('components/contacto.html', 'contacto-placeholder'),
+            loadComponent('marquesina.html', 'marquesina-placeholder'),
+            loadComponent('productos.html', 'productos-placeholder'),
+            loadComponent('contacto.html', 'contacto-placeholder'),
         ]).then(() => {
             // Aquí se llamaría a la función para cargar el JSON y renderizar los productos
             // ej: renderProductsFromJSON();
