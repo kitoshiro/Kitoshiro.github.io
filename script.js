@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // loadHTML('components/marquesina.html', 'marquesina-placeholder');
     
     // *** CLAVE: Carga la nueva sección de Contacto ***
-    loadHTML('components/contacto.html', 'contacto-placeholder');
+    loadHTML('contact.html', 'contacto-placeholder');
 });
 
 
