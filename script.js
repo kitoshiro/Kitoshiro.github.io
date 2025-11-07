@@ -4,13 +4,16 @@
 
 /**
  * Carga un módulo HTML y lo inyecta en el contenedor por su ID, retornando una Promesa.
+ * @param {string} url - La ruta del archivo HTML a cargar.
+ * @param {string} elementId - El ID del elemento donde inyectar el contenido.
  */
 function loadComponent(url, elementId) {
     return new Promise((resolve, reject) => {
         fetch(url)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Muestra el código de error HTTP, útil para depuración.
+                    throw new Error(`HTTP error! status: ${response.status} al cargar ${url}`);
                 }
                 return response.text();
             })
@@ -31,49 +34,82 @@ function loadComponent(url, elementId) {
     });
 }
 
-// Función que inicializa el Carrusel (debe existir la lógica dentro de este archivo)
-function setupCarrusel() {
-    // Aquí debe ir la lógica para iniciar el carrusel (definir slideIndex, auto-avance, etc.)
-    console.log("Carrusel inicializado DESPUÉS de la carga de su HTML.");
+// ===============================================
+// LÓGICA DEL CARRUSEL (Autoplay y Pausa al Hover)
+// ===============================================
+
+let slidesContenedor;
+let totalSlides;
+let indiceActual = 0;
+let autoplayInterval; // ID para controlar la reproducción automática
+
+/** Mueve el carrusel en la dirección especificada (1 para adelante, -1 para atrás). */
+function moverCarrusel(direccion) {
+    if (!slidesContenedor || totalSlides === 0) return;
+    
+    indiceActual += direccion;
+    
+    // Lógica para loop (bucle) infinito
+    if (indiceActual < 0) {
+        indiceActual = totalSlides - 1; 
+    } else if (indiceActual >= totalSlides) {
+        indiceActual = 0; 
+    }
+    
+    // Se asume que los slides están en línea y ocupan el 100% del ancho del contenedor
+    const desplazamiento = -indiceActual * 100;
+    slidesContenedor.style.transform = `translateX(${desplazamiento}%)`;
 }
 
-// ===============================================
-// ARRANQUE DEL SITIO Y CARGA DE MÓDULOS (USANDO ASYNC/AWAIT)
-// ===============================================
+/** Inicia el movimiento automático del carrusel. */
+function iniciarAutoplay() {
+    detenerAutoplay(); // Asegura que no haya intervalos duplicados
+    autoplayInterval = setInterval(() => {
+        moverCarrusel(1); 
+    }, 4000); // Avanza cada 4 segundos
+}
 
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // 1. Carga componentes ESENCIALES y ESTRUCTURALES (Header/Footer)
-        await Promise.all([
-            loadComponent('header.html', 'header-placeholder'),
-            loadComponent('footer.html', 'footer-placeholder'),
-        ]);
+/** Detiene el movimiento automático. */
+function detenerAutoplay() {
+    clearInterval(autoplayInterval);
+}
 
-        // 2. Carga el Carrusel y su lógica. Esperamos a que el HTML esté inyectado.
-        await loadComponent('carrusel.html', 'carrusel-placeholder');
-        setupCarrusel(); // Se ejecuta con la certeza de que el DOM del carrusel existe.
-        
-        // 3. Carga el resto de los componentes de contenido.
-        Promise.all([
-            loadComponent('marquee.html', 'marquesina-placeholder'),
-            loadComponent('product.html', 'productos-placeholder'),
-            loadComponent('contact.html', 'contacto-placeholder'),
-        ]).then(() => {
-            // Aquí se llamaría a la función para cargar el JSON y renderizar los productos
-            // ej: renderProductsFromJSON();
-        });
-
-    } catch (error) {
-        console.error("Fallo crítico en la carga inicial del sitio:", error);
+/**
+ * Inicializa la funcionalidad del carrusel (se llama después de inyectar el HTML).
+ * ASUME que el HTML inyectado tiene: 
+ * - un elemento con ID 'carrusel' (para el hover)
+ * - un elemento con ID 'slides' (el contenedor del transform)
+ * - elementos hijos con clase '.slide'
+ */
+function setupCarrusel() {
+    const carruselContainer = document.getElementById('carrusel');
+    slidesContenedor = document.getElementById('slides');
+    const slides = document.querySelectorAll('#slides .slide');
+    
+    // Si los elementos no están, el componente no se cargó correctamente.
+    if (!carruselContainer || !slidesContenedor || slides.length === 0) {
+        console.warn("No se pudo inicializar el carrusel. Elementos no encontrados en el DOM.");
+        return; 
     }
-});
+    
+    totalSlides = slides.length;
+    console.log(`Carrusel inicializado con ${totalSlides} slides.`);
 
-// ... Mantener el resto de la lógica (toggleDropdown, window.onclick, etc.)
+    // 1. Iniciar el movimiento automático al cargar
+    iniciarAutoplay();
 
-// ... (rest of your existing JavaScript code) ...
+    // 2. Lógica para DETENER/REANUDAR al pasar el cursor (HOVER)
+    carruselContainer.addEventListener('mouseenter', detenerAutoplay);
+    carruselContainer.addEventListener('mouseleave', iniciarAutoplay);
+
+    // 3. Opcional: Agregar funcionalidad a botones de navegación (si existen en el HTML)
+    // document.getElementById('prevBtn').addEventListener('click', () => moverCarrusel(-1));
+    // document.getElementById('nextBtn').addEventListener('click', () => moverCarrusel(1));
+}
+
 
 // ===============================================
-// LÓGICA DEL MENÚ DESPLEGABLE (Manejo de múltiples menús, incluido el Mega Menú)
+// LÓGICA DEL MENÚ DESPLEGABLE (Manejo de múltiples menús)
 // ===============================================
 
 /**
@@ -102,7 +138,7 @@ function toggleDropdown(dropdownId) {
 
 // Lógica para cerrar el menú si se hace clic fuera del botón o del contenido.
 window.onclick = function(event) {
-    // Si el clic no fue en un botón de desplegable
+    // Si el clic no fue en un botón de desplegable con clase '.dropbtn'
     if (!event.target.matches('.dropbtn')) {
         const dropdowns = document.getElementsByClassName("dropdown-content");
         for (let i = 0; i < dropdowns.length; i++) {
@@ -114,126 +150,46 @@ window.onclick = function(event) {
     }
 }
 
+
 // ===============================================
-// LÓGICA DEL CARRUSEL (Autoplay y Pausa al Hover)
+// ARRANQUE DEL SITIO Y CARGA DE MÓDULOS (USANDO ASYNC/AWAIT)
 // ===============================================
 
-let slidesContenedor;
-let slides;
-let totalSlides;
-let indiceActual = 0;
-let autoplayInterval; // ID para controlar la reproducción automática
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // 1. Carga componentes ESENCIALES y ESTRUCTURALES (Header/Footer) en paralelo
+        console.log("Iniciando carga de Header y Footer...");
+        await Promise.all([
+            loadComponent('header.html', 'header-placeholder'),
+            loadComponent('footer.html', 'footer-placeholder'),
+        ]);
 
-function moverCarrusel(direccion) {
-    if (!slidesContenedor || totalSlides === 0) return;
-    
-    indiceActual += direccion;
-    
-    // Lógica para loop (bucle) infinito
-    if (indiceActual < 0) {
-        indiceActual = totalSlides - 1; 
-    } else if (indiceActual >= totalSlides) {
-        indiceActual = 0; 
+        // 2. Carga el Carrusel. Esperamos a que el HTML esté inyectado.
+        console.log("Cargando Carrusel...");
+        await loadComponent('carrusel.html', 'carrusel-placeholder');
+        setupCarrusel(); // Se ejecuta con la certeza de que el DOM del carrusel existe.
+        
+        // 3. Carga el resto de los componentes de contenido en paralelo.
+        console.log("Cargando contenido principal (Productos, Marquee, Contacto)...");
+        Promise.all([
+            loadComponent('marquee.html', 'marquesina-placeholder'),
+            loadComponent('product.html', 'productos-placeholder'),
+            loadComponent('contact.html', 'contacto-placeholder'),
+        ]).then(() => {
+            console.log("Toda la carga de componentes ha finalizado.");
+            // Aquí podrías llamar a funciones que dependan de todo el contenido cargado
+            // ej: renderProductsFromJSON();
+        });
+
+    } catch (error) {
+        // Muestra un mensaje amigable al usuario en caso de fallo crítico
+        document.body.innerHTML = `
+            <div style="text-align:center; padding: 50px; color: red;">
+                <h1>⚠️ Error Crítico de Carga ⚠️</h1>
+                <p>No se pudo inicializar el sitio. Verifique que todos los archivos (HTML, JS) existan.</p>
+                <p>Consola de depuración: ${error.message}</p>
+            </div>
+        `;
+        console.error("Fallo crítico en la carga inicial del sitio:", error);
     }
-    
-    const desplazamiento = -indiceActual * 100;
-    slidesContenedor.style.transform = `translateX(${desplazamiento}%)`;
-}
-
-function iniciarAutoplay() {
-    detenerAutoplay(); 
-    autoplayInterval = setInterval(() => {
-        moverCarrusel(1); 
-    }, 4000);
-}
-
-function detenerAutoplay() {
-    clearInterval(autoplayInterval);
-}
-
-function setupCarrusel() {
-    const carruselContainer = document.getElementById('carrusel');
-    slidesContenedor = document.getElementById('slides');
-    slides = document.querySelectorAll('.slide');
-    
-    // Si los elementos aún no se han inyectado, reintentamos
-    if (!carruselContainer || !slidesContenedor) {
-        setTimeout(setupCarrusel, 500); 
-        return; 
-    }
-    
-    totalSlides = slides.length;
-    
-    // 1. Iniciar el movimiento automático al cargar
-    iniciarAutoplay();
-
-    // 2. Lógica para DETENER/REANUDAR al pasar el cursor (HOVER)
-    carruselContainer.addEventListener('mouseenter', detenerAutoplay);
-    carruselContainer.addEventListener('mouseleave', iniciarAutoplay);
-}
-// Función para cargar dinámicamente módulos HTML
-function loadHTML(url, elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Error al cargar ${url}: ${response.statusText}`);
-                }
-                return response.text();
-            })
-            .then(data => {
-                element.innerHTML = data;
-                // Puedes agregar lógica específica post-carga aquí
-            })
-            .catch(error => {
-                console.error("Fallo la carga del componente:", error);
-            });
-    }
-}
-
-// 1. Cargar el Header (si aún no lo haces)
-// loadHTML('components/header.html', 'header-placeholder'); 
-// Asume que esta línea ya existe para tu menú fijo.
-
-// 2. Cargar la sección de Contacto
-// Asegúrate de que la ruta a tu archivo sea correcta
-document.addEventListener('DOMContentLoaded', () => {
-    // Carga el Header (Ejemplo, si lo tienes en components)
-    // loadHTML('components/header.html', 'header-placeholder');
-    
-    // Carga el Carrusel y Marquesina (Ejemplo)
-    // loadHTML('components/carrusel.html', 'carrusel-placeholder');
-    // loadHTML('components/marquesina.html', 'marquesina-placeholder');
-    
-    // *** CLAVE: Carga la nueva sección de Contacto ***
-    loadHTML('contact.html', 'contacto-placeholder');
 });
-
-
-// Mantenemos la lógica para los dropdowns y mega-menús
-function toggleDropdown(id) {
-    var dropdownContent = document.getElementById(id);
-    // Cierra todos los menús abiertos, excepto el actual
-    document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
-        if (openDropdown.id !== id) {
-            openDropdown.classList.remove('show');
-        }
-    });
-    
-    // Muestra u oculta el menú actual
-    dropdownContent.classList.toggle("show");
-}
-
-// Cierra el menú si el usuario hace clic fuera de él
-window.onclick = function(event) {
-    if (!event.target.matches('.dropbtn')) {
-        var dropdowns = document.getElementsByClassName("dropdown-content");
-        for (var i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
-            }
-        }
-    }
-}
